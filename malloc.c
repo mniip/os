@@ -76,7 +76,7 @@ void print_free_list()
 	free_list *list = list_head;
 	while(list)
 	{
-		vga_printf("0x%x (0x%x bytes) --> ", (uint32_t)list, list->size);
+		vga_printf("0x%x (0x%x) --> ", (uint32_t)list, list->size);
 		list = list->next;
 	}
 	vga_printf("0x%x\n", (uint32_t)list);
@@ -126,7 +126,7 @@ void *malloc(uint32_t size)
 				new->size = list->size - act_size;
 			}
 			*(uint32_t *)list = act_size;
-			vga_printf("malloc(0x%x) = 0x%x\n", size, (uint32_t)((void *)list + sizeof(uint32_t)));
+			//vga_printf("malloc(0x%x) = 0x%x\n", size, (uint32_t)((void *)list + sizeof(uint32_t)));
 			return (void *)list + sizeof(uint32_t);
 		}
 		prevptr = &list->next;
@@ -138,7 +138,7 @@ void *malloc(uint32_t size)
 
 void free(void *ptr)
 {
-	vga_printf("free(0x%x)\n", ptr);
+	//vga_printf("free(0x%x)\n", ptr);
 	void *act_ptr = ptr - sizeof(uint32_t);
 	uint32_t size = *(uint32_t *)act_ptr;
 	free_list *list = list_head;
@@ -177,7 +177,7 @@ void free(void *ptr)
 	}
 	else
 	{
-		if((void *)list + list->size == act_ptr)
+		if(list == act_ptr + size)
 		{
 			// merge with following
 			free_list *new = act_ptr;
