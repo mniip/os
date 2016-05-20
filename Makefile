@@ -3,9 +3,10 @@ ASFLAGS=
 LD=ld
 LDFLAGS=-n -m elf_i386
 CC=gcc -m32
-CFLAGS=-O1 -Wall -Wextra -ffreestanding -nostdlib
+CFLAGS=-O3 -Wall -Wextra -ffreestanding -nostdlib
 
 OUTPUT=boot.img
+LINK=data.T
 ASM_OBJS=start.o
 C_OBJS=main.o vga_io.o malloc.o
 
@@ -23,8 +24,8 @@ all: $(OUTPUT)
 mbr.lo: mbr.o
 	$(LD) $+ -o $@ $(LDFLAGS) -Ttext=0x07C00
 
-data.lo: $(ASM_OBJS) $(C_OBJS)
-	$(LD) $+ -o $@ $(LDFLAGS) -Ttext=0x07E00
+data.lo: $(ASM_OBJS) $(C_OBJS) $(LINK)
+	$(LD) -T $(LINK) $+ -o $@ $(LDFLAGS)
 
 $(OUTPUT): mbr.bin data.bin
 	dd if=mbr.bin of=$@ bs=512 count=1
