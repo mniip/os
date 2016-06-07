@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdarg.h>
 
-extern size_t sprintf(char *, char const *, ...);
-extern size_t vsprintf(char *, char const *, va_list);
+extern int sprintf(char *, char const *, ...);
+extern int vsprintf(char *, char const *, va_list);
 
 #endif

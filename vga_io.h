@@ -9,7 +9,7 @@ extern int vga_get_bg();
 extern void vga_put_char(char);
 extern void vga_sync_cursor();
 
-extern void vga_printf(char const *, ...);
-extern void vga_vprintf(char const *, va_list);
+extern int vga_printf(char const *, ...);
+extern int vga_vprintf(char const *, va_list);
 
 #endif
