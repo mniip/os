@@ -113,15 +113,7 @@ static void *stream_number(void *(*writer)(void *, char), void *ud, int flags, i
 	}
 	if((flags & (SIGN | BLANK)) || sign)
 		digitwidth--;
-	if(digitwidth < digits && width != -1)
-		digits = digitwidth;
 	int i;
-	if(digits < 0)
-	{
-		for(i = 0; i < width; i++)
-			ud = writer(ud, '?');
-		return ud;
-	}
 	if(flags & ZERO_PAD)
 	{
 		if(sign)
