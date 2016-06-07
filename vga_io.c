@@ -45,6 +45,15 @@ void vga_sync_cursor()
 	outb(0x3D5, cursor >> 8);
 }
 
+void vga_reset()
+{
+	int i;
+	for(i = 0; i < VGA_LINES * VGA_COLUMNS; i++)
+		VGA_RAM[i] = (uint16_t)' ' | (uint16_t)color << 8;
+	cursor = 0;
+	vga_sync_cursor();
+}
+
 void vga_set_color(int fg, int bg)
 {
 	color = bg << 4 | (fg & 0x0F);
