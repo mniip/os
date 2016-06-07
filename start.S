@@ -41,14 +41,13 @@ halt:
 	jmp halt
 
 panic:
-	mov %cs, %ax
-	mov %ax, %ds
-	mov $msg_panic, %si
 	mov $0xB800, %ax
-	mov %ax, %es
-	mov $0, %di
-	mov $5, %cx
-	rep movsw
+	mov %ax, %ds
+	movw $'P'|0x0C00, 0
+	movw $'a'|0x0C00, 2
+	movw $'n'|0x0C00, 4
+	movw $'i'|0x0C00, 6
+	movw $'c'|0x0C00, 8
 	jmp halt
 
 msg_panic:
