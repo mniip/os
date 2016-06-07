@@ -3,12 +3,12 @@ ASFLAGS=
 LD=ld
 LDFLAGS=-n -m elf_i386
 CC=gcc -m32
-CFLAGS=-O3 -Wall -Wextra -ffreestanding -nostdlib
+CFLAGS=-O0 -Wall -Wextra -ffreestanding -nostdlib -mno-sse
 
 OUTPUT=boot.img
 LINK=data.T
 ASM_OBJS=start.o
-C_OBJS=main.o vga_io.o malloc.o
+C_OBJS=main.o vga_io.o malloc.o sprintf.o
 
 all: $(OUTPUT)
 

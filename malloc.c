@@ -57,7 +57,7 @@ void print_regions()
 	uint32_t i;
 	for(i = 0; i < mem_info_sz; i++)
 	{
-		vga_printf("0x%16lx-0x%16lx (0x%lx) (type %u)\n", list[i].base, list[i].base + list[i].length - 1, list[i].length, list[i].type);
+		vga_printf("0x%016llx-0x%016llx (0x%llx) (type %u)\n", list[i].base, list[i].base + list[i].length - 1, list[i].length, list[i].type);
 	}
 }
 
@@ -85,7 +85,6 @@ void print_free_list()
 void init_alloc()
 {
 	filter_regions();
-	print_regions();
 
 	list_head = find_slot((void *)0x100000, sizeof(free_list));
 	free_list *list = list_head;
