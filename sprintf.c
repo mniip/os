@@ -175,6 +175,58 @@ static void *stream_number(void *(*writer)(void *, char), void *ud, int flags, i
 	return ud;
 }
 
+static void *stream_double(void *(*writer)(void *, char), void *ud, int flags, int width, int precision, double value, int sign)
+{
+	int digits = 1;
+	double exp = 1;
+	while(value / 10.0 >= exp)
+	{
+		exp *= 10.0;
+		digits++;
+	}
+	int digitwidth = width;
+	if((flags & (SIGN | BLANK)) || sign)
+		digitwidth--;
+	int i;
+	if(flags & ZERO_PAD)
+	{
+		if(sign)
+			ud = writer(ud, '-');
+		else if(flags & SIGN)
+			ud = writer(ud, '+');
+		else if(flags & BLANK)
+			ud = writer(ud, ' ');
+	}
+	ud = stream_pad(writer, ud, flags, digitwidth - digits - 1 - precision, 1);
+	if(!(flags & ZERO_PAD))
+	{
+		if(sign)
+			ud = writer(ud, '-');
+		else if(flags & SIGN)
+			ud = writer(ud, '+');
+		else if(flags & BLANK)
+			ud = writer(ud, ' ');
+	}
+	for(i = 0; i < digits; i++)
+	{
+		int digit = value / exp;
+		value = value - digit * exp;
+		exp /= 10.0;
+		ud = writer(ud, digit + '0');
+	}
+	ud = writer(ud, '.');
+	for(i = 0; i < precision; i++)
+	{
+		int digit = value / exp;
+		value = value - digit * exp;
+		exp /= 10.0;
+		ud = writer(ud, digit + '0');
+	}
+	ud = stream_pad(writer, ud, flags, digitwidth - digits - 1 - precision, 0);
+	return ud;
+}
+
+
 static void *stream_signed(void *(*writer)(void *, char), void *ud, int flags, int width, int type, int base, va_list *arg)
 {
 	long long int value = 0;
@@ -306,6 +358,13 @@ void *vstreamf(void *(*writer)(void *, char), void *ud, char const *fmt, va_list
 					ud = stream_unsigned(writer, ud, flags, width, type, 16, &arg);
 					done = 1;
 					break;
+				case 'g':
+					{
+						double d = va_arg(arg, double);
+						ud = stream_double(writer, ud, flags, width, precision == -1 ? 10 : precision, d < 0.0 ? -d : d, d < 0.0);
+						done = 1;
+					}
+					break;
 				case 'p':
 					flags |= ALTERNATE;
 					ud = stream_unsigned(writer, ud, flags, width, type, 16, &arg);
@@ -363,6 +422,34 @@ int sprintf(char *buf, char const *fmt, ...)
 	va_list arg;
 	va_start(arg, fmt);
 	int ret = vsprintf(buf, fmt, arg);
+	va_end(arg);
+	return ret;
+}
+
+static void *string_max_writer(void *ud, char c)
+{
+	char *str = ((char **)ud)[0];
+	char *max = ((char **)ud)[1];
+	if(str != max)
+	{
+		*(str++) = c;
+		((char **)ud)[0] = str;
+	}
+	return ud;
+}
+
+int vsnprintf(char *buf, int size, char const *fmt, va_list arg)
+{
+	char *ud[2] = {buf, buf + size};
+	vstreamf(string_max_writer, (void *)&ud, fmt, arg);
+	return ud[0] - buf;
+}
+
+int snprintf(char *buf, int size, char const *fmt, ...)
+{
+	va_list arg;
+	va_start(arg, fmt);
+	int ret = vsnprintf(buf, size, fmt, arg);
 	va_end(arg);
 	return ret;
 }
