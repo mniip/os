@@ -137,6 +137,8 @@ void *malloc(uint32_t size)
 
 void free(void *ptr)
 {
+	if(!ptr)
+		return;
 	//vga_printf("free(0x%x)\n", ptr);
 	void *act_ptr = ptr - sizeof(uint32_t);
 	uint32_t size = *(uint32_t *)act_ptr;
@@ -192,4 +194,26 @@ void free(void *ptr)
 			list_head = new;
 		}
 	}
+}
+
+void *realloc(void *ptr, uint32_t size)
+{
+	//vga_printf("realloc(0x%x, 0x%x) = ", ptr, size);
+	if(!size)
+	{
+		free(ptr);
+		return 0;
+	}
+	if(!ptr)
+		return malloc(size);
+	void *act_ptr = ptr - sizeof(uint32_t);
+	uint32_t copy_size = *(uint32_t *)act_ptr;
+	if(size < copy_size)
+		copy_size = size;
+	void *new = malloc(size);
+	uint32_t i = 0;
+	for(i = 0; i < copy_size; i++)
+		((char *)new)[i] = ((char const *)ptr)[i];
+	free(ptr);
+	return new;
 }
