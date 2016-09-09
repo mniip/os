@@ -95,6 +95,17 @@ _start32:
 	mov %ax, %ds
 	mov %ax, %ss
 	mov $0x7C00, %esp
+	pushl $0
+	mov %esp, %ebp
+
+	mov %cr0, %eax
+	and $0xFFFFFFFB, %eax
+	or $0x2, %eax
+	mov %eax, %cr0
+	mov %cr4, %eax
+	or $0x600, %eax
+	mov %eax, %cr4
+	fninit
 
 	call main
 .loop:
