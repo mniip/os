@@ -29,6 +29,10 @@ void vga_put_char(char c)
 		cursor = (cursor / VGA_COLUMNS + 1) * VGA_COLUMNS;
 		vga_auto_scroll();
 	}
+	else if(c == '\b')
+	{
+		cursor--;
+	}
 	else
 	{
 		VGA_RAM[cursor] = (uint16_t)c | (uint16_t)color << 8;
