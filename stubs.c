@@ -18,6 +18,7 @@ uint32_t time(uint32_t *t)
 
 void abort()
 {
+	halt();
 }
 
 double fmod(double x, double y)

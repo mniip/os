@@ -35,6 +35,7 @@ _start:
 
 	jmp $0x10, $_start32
 
+.global halt
 halt:
 	cli
 	hlt
