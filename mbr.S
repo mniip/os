@@ -25,7 +25,7 @@ _start:
 	
 	mov $0, %si
 .contread:
-	cmp $50, %si
+	cmp $300, %si
 	je .endread
 
 	mov $2, %ah # read
@@ -74,4 +74,4 @@ panic:
 	.byte 0
 
 .space 0x1FE - (. - .begin)
-.byte 0xAA, 0x55
+.byte 0x55, 0xAA
