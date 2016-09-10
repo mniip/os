@@ -119,6 +119,8 @@ int memcmp(void const *s1, void const *s2, uint32_t n)
 		s2++;
 		n--;
 	}
+	if(!n)
+		return 0;
 	if(*(char const *)s1 > *(char const *)s2)
 		return 1;
 	if(*(char const *)s1 < *(char const *)s2)
