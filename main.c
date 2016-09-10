@@ -7,6 +7,7 @@
 #include "sprintf.h"
 #include "asm.h"
 
+#include "string.h"
 #include <lua.h>
 #include <lauxlib.h>
 
@@ -57,8 +58,8 @@ void main()
 	lua_State *L = luaL_newstate();
 
 	char str[4096];
+	strcpy(str, "");
 	vga_printf("> ");
-	str[0] = 0;
 
 	while(1)
 	{
@@ -77,7 +78,7 @@ void main()
 			}
 
 			vga_printf("> ");
-			str[0] = 0;
+			strcpy(str, "");
 		}
 		pause();
 	}
