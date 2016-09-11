@@ -8,7 +8,7 @@ CFLAGS=-O0 -Wall -Wextra -ffreestanding -nostdlib -mno-sse -Ilua-5.3.3/src/
 OUTPUT=boot.img
 LINK=data.T
 ASM_OBJS=start.o
-C_OBJS=main.o vga_io.o malloc.o sprintf.o keyboard.o debug.o string.o stubs.o libc/setjmp.o lua-5.3.3/src/liblua.a
+C_OBJS=main.o vga_io.o malloc.o sprintf.o keyboard.o debug.o handler.o string.o stubs.o libc/setjmp.o lua-5.3.3/src/liblua.a
 
 all: $(OUTPUT)
 
