@@ -44,11 +44,11 @@ halt:
 panic:
 	mov $0xB800, %ax
 	mov %ax, %ds
-	movw $'P'|0x0C00, 0
-	movw $'a'|0x0C00, 2
-	movw $'n'|0x0C00, 4
-	movw $'i'|0x0C00, 6
-	movw $'c'|0x0C00, 8
+	movw $'P'|0x0E00, 0
+	movw $'a'|0x0E00, 2
+	movw $'n'|0x0E00, 4
+	movw $'i'|0x0E00, 6
+	movw $'c'|0x0E00, 8
 	jmp halt
 
 msg_panic:
@@ -92,8 +92,10 @@ gdt_end:
 
 .code32
 _start32:
+	cli
 	mov $0x08, %ax
 	mov %ax, %ds
+	mov %ax, %es
 	mov %ax, %ss
 	mov $0x7C00, %esp
 	pushl $0

@@ -3,10 +3,17 @@
 .global _start
 _start:
 	cli
-
+	jmp .loop
+.space 0x80
+.next:
+	incb %cs:.drive
+	cmpb $0, %cs:.drive
+	je panic
+.loop:
 	mov $8, %ah # get CHS
-	mov $0, %dl # drive A
+	mov %cs:.drive, %dl
 	int $0x13
+	jc .next
 	and $0x3F, %cl
 	mov %cl, %cs:.sectors
 	inc %dh
@@ -17,19 +24,28 @@ _start:
 	mov $0, %bx
 
 	mov $1, %al # 1 sector
-	mov $0, %dl # drive 0
+	mov %cs:.drive, %dl # drive
+	mov $2, %cl # sector
+	mov $0, %dh # head
+	mov $0, %ch # cylinder
+	mov $2, %ah # read
+	int $0x13
+	jc .next
+	cmpw $0x2EFA, %es:0
+	jne .next
 
+	mov $1, %al # read 1 sector
+	mov %cs:.drive, %dl
 	mov $2, %cl # sector
 	mov $0, %dh # head
 	mov $0, %ch # cylinder
 	
 	mov $0, %si
 .contread:
-	cmp $300, %si
+	cmp $350, %si
 	je .endread
 
 	mov $2, %ah # read
-	clc
 	int $0x13
 	jc panic
 
@@ -68,6 +84,8 @@ panic:
 	movw $'c'|0x0C00, 8
 	jmp halt
 
+.drive:
+	.byte 0
 .sectors:
 	.byte 0
 .heads:
