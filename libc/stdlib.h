@@ -14,5 +14,6 @@ static inline int system(const char *command) { errno = ENOTSUP; return -1; }
 static inline void srand(unsigned int seed) {}
 static inline void exit(int status) {}
 static inline char *getenv(const char *name) { return NULL; }
+extern double strtod(char *, char **);
 
 #endif

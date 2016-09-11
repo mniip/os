@@ -19,9 +19,9 @@
 
 typedef struct FILE_ FILE;
 
-static FILE *stdin = NULL;
-static FILE *stdout = NULL;
-static FILE *stderr = NULL;
+static const FILE *stdin = NULL;
+static const FILE *stdout = NULL;
+static const FILE *stderr = NULL;
 
 static inline int feof(FILE *stream) { return 0; }
 static inline size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream) { errno = ENOTSUP; return EOF; }

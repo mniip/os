@@ -128,6 +128,19 @@ int memcmp(void const *s1, void const *s2, uint32_t n)
 	return 0;
 }
 
+void *memchr(void const *s, int c, uint32_t n)
+{
+	while(n)
+	{
+		if(*(char const *)s == (char)c)
+			return s;
+		s++;
+		n--;
+	}
+	return 0;
+}
+
+
 double strtod(char const *str, char const **end)
 {
 	*end = str;

@@ -10,6 +10,7 @@
 #include "string.h"
 #include <lua.h>
 #include <lauxlib.h>
+#include <lualib.h>
 
 int errno;
 
@@ -51,11 +52,74 @@ void print_stack(lua_State *L, int n)
 	vga_printf("\n");
 }
 
+int lua_vga_set_color(lua_State *L)
+{
+	vga_set_color(luaL_optinteger(L, 1, 7), luaL_optinteger(L, 2, 0));
+	return 0;
+}
+
+int lua_vga_print(lua_State *L)
+{
+	vga_printf("%s\n", luaL_optstring(L, 1, ""));
+	return 0;
+}
+
+int lua_getline(lua_State *L)
+{
+	char str[4096];
+	strcpy(str, "");
+	while(1)
+	{
+		if(poll_string(str))
+		{
+			lua_pushstring(L, str);
+			return 1;
+		}
+		pause();
+	}
+}
+
+int lua_peek(lua_State *L)
+{
+	uint32_t pointer = luaL_checkinteger(L, 1);
+	uint8_t value = *(uint8_t *)pointer;
+	lua_pushinteger(L, value);
+	return 1;
+}
+
+int lua_poke(lua_State *L)
+{
+	uint32_t pointer = luaL_checkinteger(L, 1);
+	uint8_t value = luaL_checkinteger(L, 2);
+	*(uint8_t *)pointer = value;
+	return 0;
+}
+
 void main()
 {
+	vga_printf("Initialized C\n");
+	init_handlers();
 	init_alloc();
+	print_regions();
+	print_free_list();
 
 	lua_State *L = luaL_newstate();
+	vga_printf("Initialized Lua\n");
+	lua_pushcfunction(L, lua_vga_set_color);
+	lua_setglobal(L, "vga_set_color");
+	lua_pushcfunction(L, lua_vga_print);
+	lua_setglobal(L, "vga_print");
+	lua_pushcfunction(L, lua_getline);
+	lua_setglobal(L, "getline");
+	lua_pushcfunction(L, lua_peek);
+	lua_setglobal(L, "peek");
+	lua_pushcfunction(L, lua_poke);
+	lua_setglobal(L, "poke");
+
+	luaopen_base(L);
+	lua_pop(L, 1);
+	luaopen_string(L);
+	lua_setglobal(L, "string");
 
 	char str[4096];
 	strcpy(str, "");
@@ -73,7 +137,8 @@ void main()
 			else
 			{
 				lua_pcall(L, 0, LUA_MULTRET, 0);
-				print_stack(L, lua_gettop(L));
+				if(lua_gettop(L))
+					print_stack(L, lua_gettop(L));
 				lua_settop(L, 0);
 			}
 
