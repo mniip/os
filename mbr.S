@@ -67,6 +67,7 @@ _start:
 	inc %si
 	jmp .contread
 .endread:
+	mov %cs:.drive, %al
 	jmp $0x0000, $0x7E00
 
 halt:

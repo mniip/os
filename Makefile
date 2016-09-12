@@ -8,7 +8,7 @@ CFLAGS=-O0 -Wall -Wextra -ffreestanding -nostdlib -mno-sse -Ilua-5.3.3/src/
 OUTPUT=boot.img
 LINK=data.T
 ASM_OBJS=start.o
-C_OBJS=main.o vga_io.o malloc.o sprintf.o keyboard.o debug.o handler.o string.o stubs.o libc/setjmp.o lua-5.3.3/src/liblua.a
+C_OBJS=main.o vga_io.o malloc.o sprintf.o keyboard.o bios.o disk.o debug.o handler.o string.o stubs.o libc/setjmp.o lua-5.3.3/src/liblua.a
 
 all: $(OUTPUT)
 
@@ -28,6 +28,7 @@ data.lo: $(ASM_OBJS) $(C_OBJS) $(LINK)
 	$(LD) -T $(LINK) $+ -o $@ $(LDFLAGS)
 
 $(OUTPUT): mbr.bin data.bin
+	dd if=/dev/zero of=$@ bs=512 count=2880
 	dd if=mbr.bin of=$@ bs=512 conv=notrunc count=1
 	dd if=data.bin of=$@ bs=512 conv=sync,notrunc seek=1
 
