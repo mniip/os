@@ -6,6 +6,7 @@
 #include "keyboard.h"
 #include "sprintf.h"
 #include "asm.h"
+#include "disk.h"
 
 #include "string.h"
 #include <lua.h>
@@ -95,13 +96,48 @@ int lua_poke(lua_State *L)
 	return 0;
 }
 
+int lua_disk_read(lua_State *L)
+{
+	int disk = luaL_checkinteger(L, 1);
+	int sector = luaL_checkinteger(L, 2);
+	disk_chs chs;
+	int result = disk_get_chs(disk, &chs);
+	if(result)
+		return luaL_error(L, "Could not get CHS: %02x", result);
+	char data[512];
+	result = disk_read(disk, &chs, sector, data);
+	if(result)
+		return luaL_error(L, "Could not read: %02x", result);
+	lua_pushlstring(L, data, 512);
+	return 1;
+}
+
+int lua_disk_write(lua_State *L)
+{
+	int disk = luaL_checkinteger(L, 1);
+	int sector = luaL_checkinteger(L, 2);
+	disk_chs chs;
+	int result = disk_get_chs(disk, &chs);
+	if(result)
+		return luaL_error(L, "Could not get CHS: %02x", result);
+	char data[512];
+	char const *str = luaL_checkstring(L, 3);
+	int i;
+	for(i = 0; i < 512; i++)
+		data[i] = str[i];
+	result = disk_write(disk, &chs, sector, data);
+	if(result)
+		return luaL_error(L, "Could not write: %02x", result);
+	return 0;
+}
+
 void main()
 {
 	vga_printf("Initialized C\n");
 	init_handlers();
 	init_alloc();
 	print_regions();
-	print_free_list();
+	vga_printf("Booted from drive 0x%02x\n", drive);
 
 	lua_State *L = luaL_newstate();
 	vga_printf("Initialized Lua\n");
@@ -115,6 +151,10 @@ void main()
 	lua_setglobal(L, "peek");
 	lua_pushcfunction(L, lua_poke);
 	lua_setglobal(L, "poke");
+	lua_pushcfunction(L, lua_disk_read);
+	lua_setglobal(L, "disk_read");
+	lua_pushcfunction(L, lua_disk_write);
+	lua_setglobal(L, "disk_write");
 
 	luaopen_base(L);
 	lua_pop(L, 1);
