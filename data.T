@@ -8,5 +8,6 @@ SECTIONS {
 	.data :
 	{
 		*(*);
+		_end = .;
 	}
 }

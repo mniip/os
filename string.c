@@ -64,6 +64,18 @@ char const *strchr(char const *s, int c)
 	return 0;
 }
 
+char const *strrchr(char const *s, int c)
+{
+	char const *r = 0;
+	while(*s)
+	{
+		if(*s == c)
+			r = s;
+		s++;
+	}
+	return r;
+}
+
 char const *strpbrk(char const *s, char const *accept)
 {
 	while(*s)

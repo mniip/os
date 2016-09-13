@@ -42,7 +42,7 @@ _start:
 	
 	mov $0, %si
 .contread:
-	cmp $350, %si
+	cmp $500, %si
 	je .endread
 
 	mov $2, %ah # read

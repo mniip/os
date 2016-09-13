@@ -96,51 +96,50 @@ int lua_poke(lua_State *L)
 	return 0;
 }
 
-int lua_disk_read(lua_State *L)
+int lua_file_list(lua_State *L)
 {
-	int disk = luaL_checkinteger(L, 1);
-	int sector = luaL_checkinteger(L, 2);
-	disk_chs chs;
-	int result = disk_get_chs(disk, &chs);
-	if(result)
-		return luaL_error(L, "Could not get CHS: %02x", result);
-	char data[512];
-	result = disk_read(disk, &chs, sector, data);
-	if(result)
-		return luaL_error(L, "Could not read: %02x", result);
-	lua_pushlstring(L, data, 512);
+	void const *path = luaL_checkstring(L, 1);
+	dir_entry *dir = file_list(path);
+	if(!dir)
+		return luaL_error(L, "Could not read directory");
+	lua_newtable(L);
+	int i;
+	for(i = 0; dir[i].type; i++)
+	{
+		char filename[sizeof dir[i].name + 2];
+		memcpy(filename, dir[i].name, sizeof dir[i].name);
+		filename[sizeof dir[i].name] = 0;
+		if(dir[i].type == TYPE_DIR)
+		{
+			int len = strlen(filename);
+			filename[len] = '/';
+			filename[len + 1] = 0;
+		}
+		lua_pushstring(L, filename);
+		lua_rawseti(L, -2, i + 1);
+	}
+	free(dir);
 	return 1;
 }
 
-int lua_disk_write(lua_State *L)
+int lua_file_mkdir(lua_State *L)
 {
-	int disk = luaL_checkinteger(L, 1);
-	int sector = luaL_checkinteger(L, 2);
-	disk_chs chs;
-	int result = disk_get_chs(disk, &chs);
-	if(result)
-		return luaL_error(L, "Could not get CHS: %02x", result);
-	char data[512];
-	char const *str = luaL_checkstring(L, 3);
-	int i;
-	for(i = 0; i < 512; i++)
-		data[i] = str[i];
-	result = disk_write(disk, &chs, sector, data);
-	if(result)
-		return luaL_error(L, "Could not write: %02x", result);
+	file_mkdir(luaL_checkstring(L, 1));
+	return 0;
+}
+
+int lua_file_remove(lua_State *L)
+{
+	file_remove(luaL_checkstring(L, 1));
 	return 0;
 }
 
 void main()
 {
-	vga_printf("Initialized C\n");
 	init_handlers();
 	init_alloc();
-	print_regions();
-	vga_printf("Booted from drive 0x%02x\n", drive);
 
 	lua_State *L = luaL_newstate();
-	vga_printf("Initialized Lua\n");
 	lua_pushcfunction(L, lua_vga_set_color);
 	lua_setglobal(L, "vga_set_color");
 	lua_pushcfunction(L, lua_vga_print);
@@ -151,15 +150,20 @@ void main()
 	lua_setglobal(L, "peek");
 	lua_pushcfunction(L, lua_poke);
 	lua_setglobal(L, "poke");
-	lua_pushcfunction(L, lua_disk_read);
-	lua_setglobal(L, "disk_read");
-	lua_pushcfunction(L, lua_disk_write);
-	lua_setglobal(L, "disk_write");
+	lua_pushcfunction(L, lua_file_list);
+	lua_setglobal(L, "file_list");
+	lua_pushcfunction(L, lua_file_mkdir);
+	lua_setglobal(L, "file_mkdir");
+	lua_pushcfunction(L, lua_file_remove);
+	lua_setglobal(L, "file_remove");
+	luaL_dostring(L, "function dirtree(path, tab) tab = tab or '' path = path or '/' vga_print(tab .. path:match'[^/]*/?$') if path:sub(-1) == '/' then for _, v in ipairs(file_list(path)) do dirtree(path .. v, tab .. '    ') end end end");
 
 	luaopen_base(L);
 	lua_pop(L, 1);
 	luaopen_string(L);
 	lua_setglobal(L, "string");
+	luaopen_io(L);
+	lua_setglobal(L, "io");
 
 	char str[4096];
 	strcpy(str, "");

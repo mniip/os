@@ -83,7 +83,6 @@ void init_handlers()
 	*(uint16_t *)idtr = sizeof(IDT) - 1;
 	*(void **)(idtr + 2) = &IDT;
 	__asm__ __volatile__("lidt (%0)" : : "r"(&idtr));
-	vga_printf("Loaded IDT\n");
 }
 
 void print_backtrace()
