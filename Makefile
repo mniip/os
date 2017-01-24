@@ -21,11 +21,19 @@ all: $(OUTPUT)
 %.bin: %.lo
 	objcopy -O binary $+ $@
 
+symtab.o: $(ASM_OBJS) $(C_OBJS) $(LINK)
+	$(LD) -T $(LINK) $(ASM_OBJS) $(C_OBJS) -o tmp.o $(LDFLAGS)
+	readelf tmp.o -x .symtab | tail +3 | sed 's/0x\(\S*\)/\1:/g' | xxd -r > symtab.bin
+	readelf tmp.o -x .strtab | tail +3 | sed 's/0x\(\S*\)/\1:/g' | xxd -r > strtab.bin
+	$(AS) -c -o $@ /dev/null
+	objcopy --add-section=.psymtab=symtab.bin --set-section-flags=.psymtab=alloc --add-section=.pstrtab=strtab.bin --set-section-flags=.pstrtab=alloc $@
+	rm -f tmp.o symtab.bin strtab.bin
+
 mbr.lo: mbr.o
 	$(LD) $+ -o $@ $(LDFLAGS) -Ttext=0x07C00
 
-data.lo: $(ASM_OBJS) $(C_OBJS) $(LINK)
-	$(LD) -T $(LINK) $+ -o $@ $(LDFLAGS)
+data.lo: $(ASM_OBJS) $(C_OBJS) symtab.o $(LINK)
+	$(LD) -T $(LINK) $(ASM_OBJS) $(C_OBJS) symtab.o -o $@ $(LDFLAGS)
 
 $(OUTPUT): mbr.bin data.bin
 	dd if=/dev/zero of=$@ bs=512 count=2880

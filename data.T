@@ -7,6 +7,12 @@ SECTIONS {
 	}
 	.data :
 	{
+		_symtab = .;
+		*(.psymtab);
+		_symtab_end = .;
+		_strtab = .;
+		*(.pstrtab);
+		_strtab_end = .;
 		*(*);
 		_end = .;
 	}

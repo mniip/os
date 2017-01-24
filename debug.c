@@ -85,6 +85,40 @@ void init_handlers()
 	__asm__ __volatile__("lidt (%0)" : : "r"(&idtr));
 }
 
+struct symbol
+{
+	uint32_t name;
+	void *addr;
+	uint32_t size;
+	uint8_t info, other;
+	uint16_t shndx;
+};
+
+extern struct symbol _symtab[];
+extern struct symbol _symtab_end;
+
+extern char _strtab[];
+
+void print_symbol_name(void *addr)
+{
+	int i;
+	for(i = 0; &_symtab[i] < &_symtab_end; i++)
+		if(addr >= _symtab[i].addr && addr < _symtab[i].addr + (_symtab[i].size ? _symtab[i].size : 1))
+		{
+			vga_printf("%s+0x%x (%p)", &_strtab[_symtab[i].name], addr - _symtab[i].addr, addr);
+			return;
+		}
+	int last = 0;
+	void *last_addr = 0;
+	for(i = 0; &_symtab[i] < &_symtab_end; i++)
+		if(addr >= _symtab[i].addr && _symtab[i].addr >= last_addr)
+		{
+			last = i;
+			last_addr = _symtab[i].addr;
+		}
+	vga_printf("%s+0x%x [outside] (%p)", &_strtab[_symtab[last].name], addr - _symtab[last].addr, addr);
+}
+
 void print_backtrace()
 {
 	vga_printf("[begin stack trace]\n");
@@ -93,7 +127,9 @@ void print_backtrace()
 	asm("mov %%ebp, %0" : "=r"(frame));
 	for(i = 0; ((void **)frame)[0]; i++)
 	{
-		vga_printf("%3d: ebp=%x -> eip=%x\n", i, frame, ((void **)frame)[1]);
+		vga_printf("%3d: ebp=%x -> eip=", i, frame);
+		print_symbol_name(((void **)frame)[1]);
+		vga_printf("\n");
 		frame = ((void **)frame)[0];
 	}
 	vga_printf("[end stack trace]\n");

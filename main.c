@@ -53,6 +53,11 @@ void print_stack(lua_State *L, int n)
 	vga_printf("\n");
 }
 
+void lua_backtrace(lua_State *L)
+{
+	print_backtrace();
+}
+
 int lua_vga_set_color(lua_State *L)
 {
 	vga_set_color(luaL_optinteger(L, 1, 7), luaL_optinteger(L, 2, 0));
@@ -138,6 +143,7 @@ void main()
 {
 	init_handlers();
 	init_alloc();
+	print_regions();
 
 	lua_State *L = luaL_newstate();
 	lua_pushcfunction(L, lua_vga_set_color);
@@ -156,6 +162,8 @@ void main()
 	lua_setglobal(L, "file_mkdir");
 	lua_pushcfunction(L, lua_file_remove);
 	lua_setglobal(L, "file_remove");
+	lua_pushcfunction(L, lua_backtrace);
+	lua_setglobal(L, "backtrace");
 	luaL_dostring(L, "function dirtree(path, tab) tab = tab or '' path = path or '/' vga_print(tab .. path:match'[^/]*/?$') if path:sub(-1) == '/' then for _, v in ipairs(file_list(path)) do dirtree(path .. v, tab .. '    ') end end end");
 
 	luaopen_base(L);
